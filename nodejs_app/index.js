@@ -26,6 +26,15 @@ chatServer.on('connection',function(client){
 	client.on('error',function(e){
 		console.log(e);
 	});
+  //监听用户退出
+  client.on('disconnect',function(){
+    console.log('%s:disconnect',client);
+  });
+  
+  //监听用户发布聊天内容
+  client.on('message',function(obj){
+    chatServer.emit('message',obj);
+  });
 });
 chatServer.listen(9090);
 
