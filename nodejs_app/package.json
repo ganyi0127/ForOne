@@ -1,0 +1,21 @@
+{
+  "name": "nodejs_app",
+  "version": "1.0.0",
+  "description": "nodejs测试",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gan"
+  ],
+  "author": "ganyi",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "crypto": "0.0.3",
+    "jwt-simple": "^0.5.0",
+    "moment": "^2.13.0",
+    "mysql": "^2.10.2",
+    "restify": "^4.0.4"
+  }
+}
