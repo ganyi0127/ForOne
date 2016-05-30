@@ -4,6 +4,7 @@ var net = require('net');
 var router = require('./route.js');
 var user = require('./user.js');
 var resource = require('./resource.js');
+var datahandler=require('./datahandler.js');
 
 
 //test net
@@ -82,7 +83,7 @@ server.use(restify.gzipResponse());
 
 //解析请求body中的数据
 server.use(restify.bodyParser());
-
+//server.use(bodyParser.json());
 
 router.route(server, {
 	//测试
@@ -116,7 +117,7 @@ router.route(server, {
 function test(req,res,next){
 	console.log('%s listening at %s', server.name, server.url);
 	console.log('url:%s, params:%s, headers:%s',req.url, req.params, req.headers);
-	
+  res.json({a:1,b:[true,'ok']});
 	datahandler.success(res, 'success');
 	
 	return next();
