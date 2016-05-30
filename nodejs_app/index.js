@@ -8,13 +8,13 @@ var resource = require('./resource.js');
 
 //test net
 var chatServer = net.createServer();
-var clientList = [];
+var clientList = []; //保存客户端
 
 chatServer.on('connection',function(client){
 	//服务器向客户端输出信息，使用wirte()方法
 	client.name = client.remoteAddress + ':' + client.remotePort;
 	client.write('Hi!' + client.name + '!\n');	
-	clientList.push(client);
+	clientList.push(client); //每次添加一个客户端|保存
 	client.on('data',function(data){
 		//接收来自客户端的信息
 		broadcast(data,client);
@@ -22,7 +22,7 @@ chatServer.on('connection',function(client){
 	client.on('end',function(){
 		//删除数组中的指定元素
 		clientList.splice(clientList.indexOf(client),1);
-	})
+	});
 	client.on('error',function(e){
 		console.log(e);
 	});
@@ -38,14 +38,14 @@ function broadcast(message,client){
 	
 				clientList[i].write(client.name + "says" + message);
 			}else{
-				cleanUp.push(clientList[i])
+				cleanUp.push(clientList[i]);
 				clientList[i].destroy();
 			}
 		}
 	}
-
-	for(var i=0;i<cleanUp.length;i++){
-		clientList.splice(clientList.indexOf(cleanUp[i],1));
+  
+	for(var j=0;j<cleanUp.length;j++){
+		clientList.splice(clientList.indexOf(cleanUp[j],1));
 	}
 }
 		
@@ -54,6 +54,26 @@ var server = restify.createServer();
 
 //监听8080端口，如果监听1024以内的端口，需要root才行运行
 server.listen(8080);
+
+//根据ip地址限制访问速率
+server.use(restify.throttle({
+	burst : 10,
+	rate : 5,
+	ip : true
+}));
+
+//解析accept值
+server.use(restify.acceptParser(server.acceptable));
+
+//解析url的参数为对象
+server.use(restify.queryParser());
+
+//压缩响应数据
+server.use(restify.gzipResponse());
+
+//解析请求body中的数据
+server.use(restify.bodyParser());
+
 
 router.route(server, {
 	//测试
@@ -81,25 +101,6 @@ router.route(server, {
 		"respond" : resource.category
 	}
 });
-
-//根据ip地址限制访问速率
-server.use(restify.throttle({
-	burst : 10,
-	rate : 5,
-	ip : true
-}));
-
-//解析accept值
-server.use(restify.acceptParser(server.acceptable));
-
-//解析url的参数为对象
-server.use(restify.queryParser());
-
-//压缩响应数据
-server.use(restify.gzipResponse());
-
-//解析请求body中的数据
-server.use(restify.bodyParser());
 
 
 //测试

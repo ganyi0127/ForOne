@@ -5,14 +5,14 @@ var crypte = require('crypto');
 function connectDB(){
 	//1.创建数据库连接
 	var conn = mysql.createConnection({
-		host : 'mySql',
+		host : 'localhost',
 		port : '3306',
-		user : 'ganyi',
-		password : '0127'
+		user : 'root',
+		password : '123'
 	});
 
 	//2.执行SQL语句，使用FSTMB数据库
-	conn.query('USE FSTMB');
+	conn.query('USE foronedb');
 
 	return conn;
 }
