@@ -1,4 +1,5 @@
 //程序入口
+//
 var restify = require('restify');
 var net = require('net');
 var router = require('./route.js');
