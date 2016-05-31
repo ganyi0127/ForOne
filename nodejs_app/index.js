@@ -6,7 +6,7 @@ var router = require('./route.js');
 var user = require('./user.js');
 var resource = require('./resource.js');
 var datahandler=require('./datahandler.js');
-
+var testPhoto=require('./testPhoto.js');
 
 //test net
 var chatServer = net.createServer();
@@ -110,7 +110,12 @@ router.route(server, {
 		"path" : "/category",
 		"method" : "post",
 		"respond" : resource.category
-	}
+	},
+  "show" : {
+    "path" : "/show",
+    "method" : "get",
+    "respond" : testPhoto.show
+  }
 });
 
 
