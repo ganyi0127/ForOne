@@ -10,8 +10,7 @@ function register(req, res, next){
 
 	//获取参数中的密码
 	var password = req.params.password;
-  //var md5pw=security.md5(password);
-  var md5pw=password;
+  var md5pw=security.md5(password);
 
   console.log("req: %s",req);
   console.log("req.params: %s",req.params);
@@ -30,7 +29,7 @@ function register(req, res, next){
 				db.closeDB(conn);
 				//ER_DUP_ENTRY表示与唯一性冲突，意味着用户名已经存在
 				if (err.code == 'ER_DUP_ENTRY'){
-					datahandler.fail(res, username + 'exists');
+					datahandler.fail(res,'用户名已存在');
 				}else{
 					datahandler.fail(res, 'Insert user failed');
 				}
@@ -64,9 +63,12 @@ function login(req, res, next){
 		//连接数据库
 		var conn = db.connectDB();
 		//查询username对应的uid
-		var md5 = security.md5(password);
+		var md5pw = security.md5(password);
+    ///var md5pw = password;
+    console.log('md5pw: %s',md5pw);
 
-		conn.query('SELECT uid FROM user_info WHERE username = ? AND password = ?', [username, md5], function(err, results, fields){
+    //查找用户登录帐号密码是否正确
+		conn.query('SELECT userid FROM user_info WHERE username = ? AND password = ?', [username, md5pw], function(err, results, fields){
 			if (err){
 				console.log('登录时查询用户出错:' + err.code);
 				db.closeDB(conn);
@@ -77,27 +79,52 @@ function login(req, res, next){
 					db.closeDB(conn);
 					datahandler.fail(res,'Username or password error');
 				}else{
-					var userId = results[0].uid;
+					var userId = results[0].userid;
 					var expires = moment().add(7, 'days').valueOf();
 					//计算Token
-					var access_token = security.access_token(username,expires);
+          var access_token=security.access_token(username,expires); 
+          
+          console.log('userId: %s, expires: %s, access_token: %s',userId, expires, access_token);
 					
-					//登录成功，保存登录信息
-					conn.query('UPDATE user_info SET access_token = ?, expires = ? WHERE userid = ?', [access_token,expires,userId],function(err, results, fields){
-						if (err){
-							console.log(err);
-							datahandler.fail(res,'Login internal error');
-						}else{
-							//返回登录结果，可以根据需要增加其他信息
-							datahandler.success(res,{
-								userId : userId,
-								expires : expires,
-								access_token :access_token
-							});
-						}
-						db.closeDB(conn);
-					});
-				}
+          //登录成功，插入登录信息
+          conn.query('INSERT user_login(userid,expires,tokenid) VALUES(?,?,?)',[userId,expires,access_token],function(err,results,fields){
+
+            if(err){
+              console.log(err);
+
+              //如果报错为'ER_DUP_ENTRY'说明已经存在该userid的数据，则直接更新expires,tokenid
+              if(err.code=='ER_DUP_ENTRY'){
+                console.log('为已登录用户保存登录信息成功');              
+                //登录成功，更新登录信息
+                conn.query('UPDATE user_login SET tokenid = ?, expires = ? WHERE userid = ?', [access_token,expires,userId],function(err, results, fields){
+                  if (err){
+                    console.log(err);
+                    datahandler.fail(res,'Login internal error');
+                  }else{
+                    //返回登录结果，可以根据需要增加其他信息
+                    datahandler.success(res,{
+                      userId : userId,
+                      tokenid :access_token
+                    });
+                  }
+                  db.closeDB(conn);
+                  });
+
+              }else{
+                //无报错说明已经插入登录信息
+                db.closeDB(conn);
+                datahandler.fail(res,'insert user_login error'); 
+              }
+            }else{
+              
+              db.closeDB(conn);
+              datahandler.success(res,{
+                userId : userId,
+                tokenid : access_token
+              });
+            }
+          });
+        }
 			}
 		});
 	}
@@ -121,10 +148,10 @@ function isLogin(userId, access_token, expires, completion){
 	var conn = db.connectDB();
 	
 	//每次访问其他资源时，都需要获取userId, access_token, exipres等
-	conn.query('SELECT 1 FROM user_info WHERE uid = ? AND access_token = ? AND expires > ?',[userId, access_token, expires],function(err,results, fields){
+	conn.query('SELECT 1 FROM user_login WHERE userid = ? AND tokenid = ? AND expires > ?',[userId, access_token, expires],function(err,results, fields){
 		if (err){
-			console.log('DB failed');
-      return false;
+			console.log('user_login failed');
+      completion(false);
 		}else{
 			console.log(results);
 			if (results.length > 0){

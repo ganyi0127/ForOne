@@ -1,7 +1,7 @@
 //发送响应数据的代码
 function sendSuccess(res, result){
  
-	res.status(200).send({
+	res.send({
 		result : true,
 		data : result
 	});
