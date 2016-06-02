@@ -34,13 +34,24 @@ function register(req, res, next){
 					datahandler.fail(res, 'Insert user failed');
 				}
 			}else{
-        var userId=results.insertId;
-        datahandler.success(res,{
-          name : username,
-          userId : userId
-        });
+        //计算Toekn
+        var expires=moment().add(7,'days').valueOf();
+        var userId=results.userid;
+        var access_token=security.access_token(userId,expires);
 
-        db.closeDB(conn);
+        //注册成功，插入登录信息
+        conn.query('INSERT user_login(userid,expire,tokenid) VALUES(?,?,?)',[userId,expires,access_token],function(err,results,fields){
+            if(err){
+                console.log('为已登录用户保存登录信息出错' + err.code);
+            }else{
+              datahandler.success(res,{
+                userid:userId,
+                tokenid:access_token
+              });
+            }
+            
+            db.closeDB(conn);
+        });
 			}
 		});
 	}
@@ -82,7 +93,7 @@ function login(req, res, next){
 					var userId = results[0].userid;
 					var expires = moment().add(7, 'days').valueOf();
 					//计算Token
-          var access_token=security.access_token(username,expires); 
+          var access_token=security.access_token(userId,expires); 
           
           console.log('userId: %s, expires: %s, access_token: %s',userId, expires, access_token);
 					
@@ -119,7 +130,7 @@ function login(req, res, next){
               
               db.closeDB(conn);
               datahandler.success(res,{
-                userId : userId,
+                userid : userId,
                 tokenid : access_token
               });
             }
@@ -157,6 +168,7 @@ function isLogin(userId, access_token, expires, completion){
 			if (results.length > 0){
 				completion(true);
 			}else{
+        datahandler.fail(res, 'NEED_RELOGIN');
 				completion(false);
       }
     }

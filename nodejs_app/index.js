@@ -1,9 +1,9 @@
 //程序入口
-//
 var restify = require('restify');
 var net = require('net');
 var router = require('./route.js');
 var user = require('./user.js');
+var userinfo=require('./userinfo.js');
 var resource = require('./resource.js');
 var datahandler=require('./datahandler.js');
 var testPhoto=require('./testPhoto.js');
@@ -35,7 +35,7 @@ chatServer.on('connection',function(client){
   
   //监听用户发布聊天内容
   client.on('message',function(obj){
-    chatServer.emit('message',obj);
+    chatServer.write('message',obj);
   });
 });
 chatServer.listen(9090);
@@ -87,31 +87,32 @@ server.use(restify.bodyParser());
 //server.use(bodyParser.json());
 
 router.route(server, {
-	//测试
-	"test" : {
-		"path" : "/",
-		"method" : "get",
-		"respond" : test
-	},
-	//注册
-	"register" : {
+	"注册" : {
 		"path" : "/register",
 		"method" : "post",
 		"respond" : user.register
 	},
-	//登录
-	"login" : {
+	"登录" : {
 		"path" : "/login",
 		"method" : "post",
 		"respond" : user.login
 	},
-	//资源获取
-	"category" : {
+	"资源获取" : {
 		"path" : "/category",
 		"method" : "post",
 		"respond" : resource.category
 	},
-  "show" : {
+  "修改个人信息" : {
+    "path" : "/setinfo",
+    "method" : "post",
+    "respond" : userinfo.setBaseinfo
+  },
+  "获取个人信息" : {
+    "path":"/getinfo",
+    "method":"post",
+    "respond":userinfo.getBaseinfo
+  },
+  "图片获取" : {
     "path" : "/show",
     "method" : "get",
     "respond" : testPhoto.show

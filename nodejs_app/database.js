@@ -8,8 +8,8 @@ function connectDB(){
 		host : 'localhost',
 		port : '3306',
 		user : 'root',
-		password : '123'
-	});
+    password : '123'
+  });
 
 	//2.执行SQL语句，使用FSTMB数据库
 	conn.query('USE foronedb');
