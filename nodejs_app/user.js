@@ -12,11 +12,6 @@ function register(req, res, next){
 	var password = req.params.password;
   var md5pw=security.md5(password);
 
-  console.log("req: %s",req);
-  console.log("req.params: %s",req.params);
-  console.log("req.body: %s",req.body);
-  console.log("req.url: %s",req.url);
-
 	if(validata(username, password) === false){
 		datahandler.fail(res, 'Invalid username or password');
 	}else{
@@ -34,14 +29,38 @@ function register(req, res, next){
 					datahandler.fail(res, 'Insert user failed');
 				}
 			}else{
-        var userId=results.insertId;
-        datahandler.success(res,{
-          name : username,
-          userId : userId
-        });
+        conn.query('SELECT userid FROM user_info WHERE username = ? AND password = ?',[username,md5pw],function(err,results,fields){
+          if(err){
+            console.log('查找userid出错' + err.code);
+            db.closeDB(conn);
+          }else{
+            //计算Toekn
+            var userid=results[0].userid;
+            var expires=moment().add(7,'days').valueOf();
+            var tokenid=security.access_token(username,expires);
+            console.log('userid:' + userid);
+            console.log('username:' + username);
+            console.log('expires:' + expires);
+            console.log('tokenid:' + tokenid);
 
-        db.closeDB(conn);
-			}
+            //注册成功，插入登录信息
+            conn.query('INSERT INTO user_login(userid,expires,tokenid) VALUES(?,?,?)',[userid,expires,tokenid],function(err,results,fields){
+                if(err){
+                  console.log('为已登录用户保存登录信息出错' + err.code);
+                  datahandler.fail(res,'保存注册信息出错');
+                  db.closeDB(conn);
+                }else{
+                  console.log('为新注册用户保存登录信息成功');
+                  datahandler.success(res,{
+                    userid : userid,
+                    tokenid : tokenid
+                  });
+                  db.closeDB(conn);
+                }                  
+            });
+          }
+        });
+      }
 		});
 	}
 	
@@ -82,7 +101,7 @@ function login(req, res, next){
 					var userId = results[0].userid;
 					var expires = moment().add(7, 'days').valueOf();
 					//计算Token
-          var access_token=security.access_token(username,expires); 
+          var access_token=security.access_token(userId,expires); 
           
           console.log('userId: %s, expires: %s, access_token: %s',userId, expires, access_token);
 					
@@ -103,7 +122,7 @@ function login(req, res, next){
                   }else{
                     //返回登录结果，可以根据需要增加其他信息
                     datahandler.success(res,{
-                      userId : userId,
+                      userid : userId,
                       tokenid :access_token
                     });
                   }
@@ -119,7 +138,7 @@ function login(req, res, next){
               
               db.closeDB(conn);
               datahandler.success(res,{
-                userId : userId,
+                userid : userId,
                 tokenid : access_token
               });
             }
@@ -157,6 +176,7 @@ function isLogin(userId, access_token, expires, completion){
 			if (results.length > 0){
 				completion(true);
 			}else{
+        datahandler.fail(res, 'NEED_RELOGIN');
 				completion(false);
       }
     }

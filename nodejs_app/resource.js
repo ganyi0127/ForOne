@@ -1,4 +1,5 @@
 //资源获取接口代码
+var moment=require('moment');
 var db = require('./database.js');
 var datahandler = require('./datahandler.js');
 var user = require('./user.js');
@@ -6,7 +7,7 @@ var user = require('./user.js');
 function category(req, res, next){
 	var userId = req.params.userId;
 	var access_token = req.params.access_token;
-	var expires = req.params.expires;
+	var expires = moment(); 
 	
 	console.log(req.params);
 
@@ -15,7 +16,7 @@ function category(req, res, next){
 		if (success){
 			var conn = db.connectDB();
 			//获取资源
-			conn.query('SELECT cid,name FROM category',function(err, results, fields){
+			conn.query('SELECT username FROM user_info',function(err, results, fields){
 				if (err){
 					datahandler.fail(res, 'Select category error');
 				}else{
@@ -25,7 +26,7 @@ function category(req, res, next){
 				db.closeDB(conn);
 			});
 		}else{
-			datahandler.fail(res, 'Must login');
+      console.log('登录信息已过期');
 		}
 	});
 
