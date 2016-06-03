@@ -2,16 +2,16 @@
 function sendSuccess(res, result){
  
 	res.send({
-		result : true,
-		data : result
+		'result' : true,
+		'data' : result
 	});
 }
 
 function sendFailed(res, reason){
 	
 	res.send({
-		result : false,
-		reason : reason
+		'result' : false,
+		'reason' : reason
 	});
 }
 

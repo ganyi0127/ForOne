@@ -12,11 +12,6 @@ function register(req, res, next){
 	var password = req.params.password;
   var md5pw=security.md5(password);
 
-  console.log("req: %s",req);
-  console.log("req.params: %s",req.params);
-  console.log("req.body: %s",req.body);
-  console.log("req.url: %s",req.url);
-
 	if(validata(username, password) === false){
 		datahandler.fail(res, 'Invalid username or password');
 	}else{
@@ -34,25 +29,38 @@ function register(req, res, next){
 					datahandler.fail(res, 'Insert user failed');
 				}
 			}else{
-        //计算Toekn
-        var expires=moment().add(7,'days').valueOf();
-        var userId=results.userid;
-        var access_token=security.access_token(userId,expires);
-
-        //注册成功，插入登录信息
-        conn.query('INSERT user_login(userid,expire,tokenid) VALUES(?,?,?)',[userId,expires,access_token],function(err,results,fields){
-            if(err){
-                console.log('为已登录用户保存登录信息出错' + err.code);
-            }else{
-              datahandler.success(res,{
-                userid:userId,
-                tokenid:access_token
-              });
-            }
-            
+        conn.query('SELECT userid FROM user_info WHERE username = ? AND password = ?',[username,md5pw],function(err,results,fields){
+          if(err){
+            console.log('查找userid出错' + err.code);
             db.closeDB(conn);
+          }else{
+            //计算Toekn
+            var userid=results[0].userid;
+            var expires=moment().add(7,'days').valueOf();
+            var tokenid=security.access_token(username,expires);
+            console.log('userid:' + userid);
+            console.log('username:' + username);
+            console.log('expires:' + expires);
+            console.log('tokenid:' + tokenid);
+
+            //注册成功，插入登录信息
+            conn.query('INSERT INTO user_login(userid,expires,tokenid) VALUES(?,?,?)',[userid,expires,tokenid],function(err,results,fields){
+                if(err){
+                  console.log('为已登录用户保存登录信息出错' + err.code);
+                  datahandler.fail(res,'保存注册信息出错');
+                  db.closeDB(conn);
+                }else{
+                  console.log('为新注册用户保存登录信息成功');
+                  datahandler.success(res,{
+                    userid : userid,
+                    tokenid : tokenid
+                  });
+                  db.closeDB(conn);
+                }                  
+            });
+          }
         });
-			}
+      }
 		});
 	}
 	
@@ -114,7 +122,7 @@ function login(req, res, next){
                   }else{
                     //返回登录结果，可以根据需要增加其他信息
                     datahandler.success(res,{
-                      userId : userId,
+                      userid : userId,
                       tokenid :access_token
                     });
                   }
