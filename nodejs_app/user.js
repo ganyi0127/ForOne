@@ -151,9 +151,6 @@ function login(req, res, next){
 	return next();
 }
 
-exports.register = register;
-exports.login = login;
-
 //验证是否上传了用户名和密码
 function validata(username, password){
 	if (username == "undefined"){
@@ -163,23 +160,30 @@ function validata(username, password){
 	}
 }
 
-function isLogin(userId, access_token, expires, completion){
+function isLogin(userid, access_token, expires, completion){
 	var conn = db.connectDB();
 	
 	//每次访问其他资源时，都需要获取userId, access_token, exipres等
-	conn.query('SELECT 1 FROM user_login WHERE userid = ? AND tokenid = ? AND expires > ?',[userId, access_token, expires],function(err,results, fields){
+  console.log('expires:' + expires);
+	conn.query('SELECT * FROM user_login WHERE userid = ? AND tokenid = ? AND expires > ?',[userid, access_token, expires],function(err,results, fields){
 		if (err){
-			console.log('user_login failed');
+			console.log('isLogin error:' + err);
       completion(false);
 		}else{
 			console.log(results);
 			if (results.length > 0){
 				completion(true);
 			}else{
-        datahandler.fail(res, 'NEED_RELOGIN');
+        datahandler.fail(res, '登陆信息已过期');
 				completion(false);
       }
     }
 		db.closeDB(conn);
 	});
 }
+
+module.exports = {
+  register:register,
+  login:login,
+  isLogin:isLogin
+};

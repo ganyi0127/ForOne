@@ -11,7 +11,7 @@ function connectDB(){
     password : '123'
   });
 
-	//2.执行SQL语句，使用FSTMB数据库
+	//2.执行SQL语句
 	conn.query('USE foronedb');
 
 	return conn;
