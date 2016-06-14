@@ -1,5 +1,6 @@
 //用户个人信息
 var moment=require('moment');
+var fs=require('fs');
 var user=require('./user.js');
 var db=require('./database.js');
 var datahandler=require('./datahandler.js');
@@ -52,19 +53,34 @@ function setBaseinfo(req,res,next){
   return next();
 }
 
+//更新头像
+function setHeadInfo(req,res,next){
+  //获取参数
+  console.log(req);
+  var userid = req.params.userid;
+  fs.writeFile('./headphoto/fo' + userid + '.png','binary',function(error,file){
+
+    if(error){
+      datahandler.fail(res,error);
+    }else{
+      datahandler.success(res,{});
+    }
+  });
+}
+
 //获取个人信息
 function getBaseinfo(req,res,next){
   //获取参数
-  var userid=req.param.userid;
-  var tokenid=req.param.tokenid;
-  var expires=moment();
+  var userid=req.params.userid;
+  var tokenid=req.params.tokenid;
+  var expires=moment().valueOf();
 
   user.isLogin(userid,tokenid,expires,function(success){
     if(success){
       var conn=db.connectDB();
 
       //获取个人信息
-      conn.query('SELECT 1 FROM user_info WHERE userid=?',userid,function(err,results,fields){
+      conn.query('SELECT * FROM user_info WHERE userid=?',userid,function(err,results,fields){
 
         if(err){
           console.log('获取用户信息出错'+err);

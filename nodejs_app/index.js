@@ -6,7 +6,7 @@ var user = require('./user.js');
 var userinfo=require('./userinfo.js');
 var resource = require('./resource.js');
 var datahandler=require('./datahandler.js');
-var testPhoto=require('./testPhoto.js');
+var photohandler=require('./photohandler.js');
 
 //test net
 var chatServer = net.createServer();
@@ -113,9 +113,14 @@ router.route(server, {
     "respond":userinfo.getBaseinfo
   },
   "图片获取" : {
-    "path" : "/show",
+    "path" : "/getphoto",
     "method" : "get",
-    "respond" : testPhoto.show
+    "respond" : photohandler.getPhoto
+  },
+  '图片保存':{
+    'path':'/setphoto',
+    'method':'post',
+    'respond':photohandler.setPhoto
   }
 });
 
