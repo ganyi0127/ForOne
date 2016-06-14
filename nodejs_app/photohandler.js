@@ -70,8 +70,10 @@ function getPhoto(req,res,next){
 }
 
 function setPhoto(req,res,next){
-  var headphoto=req.params.userid;
-  var data=req.params.data;
+  for(var obj in req.params){
+    console.log('obj:' + obj);
+  }
+  console.log('userid:' + headphoto + '\nimageData:' + data);
   //fs.writeFile('./headphoto/fo'+userid+'.png','binary',function(error,file){
   //  if(error){
   //    datahandler.fail(res,error);
@@ -80,11 +82,22 @@ function setPhoto(req,res,next){
   //  }
   //});
   var path='./headphoto/fo'+headphoto+'.png';
-  fs.appendFile(path,data,{flags:'a',encoding:'utf8'},function(error){
-    if(error){
-      datahandler.fail(res,'保存失败');
+  //fs.appendFile(path,data,{flags:'a',encoding:'utf8'},function(error){
+  //  if(error){
+  //    datahandler.fail(res,'保存失败');
+  //  }else{
+  //    datahandler.success(res,{});
+  //  }
+  //});
+  fs.writeFile(path, data, "binary", function(err){
+    if(err){
+      console.log("down fail");
+      datahandler.fail(res,'上传失败');
     }else{
-      datahandler.success(res,{});
+      console.log("down success");
+      datahandler.success(res,{
+        filename:'fo'+headphoto+'.png'
+      });
     }
   });
 }
@@ -93,5 +106,4 @@ module.exports={
   getPhoto:getPhoto,
   setPhoto:setPhoto
 };
-
 
