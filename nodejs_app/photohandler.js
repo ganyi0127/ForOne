@@ -22,7 +22,7 @@ function getPhoto(req,res,next){
       var rOption={
         flags:'r',
         fd:null,
-        encoding:'binary',
+        encoding:'utf8',
         mode:0666,
         autoClose:true
       };
