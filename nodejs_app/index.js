@@ -61,7 +61,15 @@ function broadcast(message,client){
 }
 		
 
-var server = restify.createServer();
+var server = restify.createServer({
+  name:'foroneserver'
+  //certification:string HTTPS服务器证书
+  //key:string HTTPS服务器证书key
+  //formatters:object自定义的response的content-type
+  //name:string服务器的response header
+  //spdy:Object 允许集成node-spdy服务器
+  //version:string路由版本
+});
 
 //监听8080端口，如果监听1024以内的端口，需要root才行运行
 server.listen(8080);
@@ -84,7 +92,8 @@ server.use(restify.gzipResponse());
 
 //解析请求body中的数据
 server.use(restify.bodyParser());
-//server.use(bodyParser.json());
+server.use(restify.jsonp());
+//server.use(restify.urlencoded());
 
 router.route(server, {
 	"注册" : {
@@ -113,7 +122,7 @@ router.route(server, {
     "respond":userinfo.getBaseinfo
   },
   "图片获取" : {
-    "path" : "/getphoto",
+    "path" : "/getphoto/:name",
     "method" : "get",
     "respond" : photohandler.getPhoto
   },

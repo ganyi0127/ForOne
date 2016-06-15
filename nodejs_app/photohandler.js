@@ -16,12 +16,15 @@ function getPhoto(req,res,next){
   
   //var headphoto=req.params.headphoto;
   //var path = './headphoto/fo'+headphoto+'.png';
-  var path = './headphoto/011.png';
+  var path = './headphoto/' + req.params.name;
   fs.exists(path,function(exists){
     if(exists){
       var rOption={
-        fd:'userHeadPhoto',
-        encoding:null,
+        flags:'r',
+        fd:null,
+        encoding:'binary',
+        mode:0666,
+        autoClose:true
       };
       var wOption={
         flags:'w',
@@ -36,6 +39,9 @@ function getPhoto(req,res,next){
         console.log('获取'+headphoto+'头像完成');
         res.end();
       });
+
+      //datahandler.success(res,{message:'getImageSuccess!'});
+
       //var fileWriteStream=fs.createWriteStream('./headphoto/test.png',wOption);
 
       //fileReadStream.pipe(fileWriteStream);
@@ -50,53 +56,36 @@ function getPhoto(req,res,next){
       //  fileReadStream.resume();
       //});
 
-      //fileReadStream.pipe(res);
+      res.on('end',function(){
+        console.log('res: end');
+      });
 
-      //fileReadStream.on('error',function(){
-      //  console.log('error' + error);
-      //  res.end();
-      //});
-
-      //fileReadStream.on('end',function(){
-      //  console.log('readStream end');
-      //  res.end();
-      //});
+      fileReadStream.on('error',function(){
+        console.log('error' + error);
+        res.end();
+      });
 
     }else{
       console.log(path + '不存在');
+      datahandler.fail(res,'file not exists!');
     }
   });
 
 }
 
 function setPhoto(req,res,next){
-  for(var obj in req.params){
-    console.log('obj:' + obj);
-  }
+  var data = req.body;
+  var headphoto = req.params.userid;
   console.log('userid:' + headphoto + '\nimageData:' + data);
-  //fs.writeFile('./headphoto/fo'+userid+'.png','binary',function(error,file){
-  //  if(error){
-  //    datahandler.fail(res,error);
-  //  }else{
-  //    datahandler.success(res,{});
-  //  }
-  //});
   var path='./headphoto/fo'+headphoto+'.png';
-  //fs.appendFile(path,data,{flags:'a',encoding:'utf8'},function(error){
-  //  if(error){
-  //    datahandler.fail(res,'保存失败');
-  //  }else{
-  //    datahandler.success(res,{});
-  //  }
-  //});
-  fs.writeFile(path, data, "binary", function(err){
+  fs.writeFile(path, data, "utf8", function(err){
     if(err){
       console.log("down fail");
       datahandler.fail(res,'上传失败');
     }else{
       console.log("down success");
       datahandler.success(res,{
-        filename:'fo'+headphoto+'.png'
+        photoname:'fo'+headphoto+'.png'
       });
     }
   });
