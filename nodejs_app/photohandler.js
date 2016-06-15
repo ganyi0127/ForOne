@@ -76,7 +76,6 @@ function getPhoto(req,res,next){
 function setPhoto(req,res,next){
   var data = req.body;
   var headphoto = req.params.userid;
-  console.log('userid:' + headphoto + '\nimageData:' + data);
   var path='./headphoto/fo'+headphoto+'.png';
   fs.writeFile(path, data, "utf8", function(err){
     if(err){
