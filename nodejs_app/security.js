@@ -24,7 +24,6 @@ function sha1(content){
 //计算tokenid
 function access_token(username,expires){
   var content = username + expires;
-
   var md5vo=crypto.createHash('md5');
   md5vo.update(content);
 

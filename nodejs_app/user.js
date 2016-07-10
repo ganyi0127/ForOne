@@ -83,8 +83,6 @@ function login(req, res, next){
 		var conn = db.connectDB();
 		//查询username对应的uid
 		var md5pw = security.md5(password);
-    ///var md5pw = password;
-    console.log('md5pw: %s',md5pw);
 
     //查找用户登录帐号密码是否正确
 		conn.query('SELECT userid FROM user_info WHERE username = ? AND password = ?', [username, md5pw], function(err, results, fields){
@@ -101,7 +99,7 @@ function login(req, res, next){
 					var userId = results[0].userid;
 					var expires = moment().add(7, 'days').valueOf();
 					//计算Token
-          var access_token=security.access_token(userId,expires); 
+          var access_token=security.access_token(username,expires); 
           
           console.log('userId: %s, expires: %s, access_token: %s',userId, expires, access_token);
 					
