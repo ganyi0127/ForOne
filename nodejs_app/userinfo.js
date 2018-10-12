@@ -32,7 +32,7 @@ function setBaseinfo(req,res,next){
 
       //插入修改后的个人信息
       conn.query('UPDATE user_info SET nickname = ? , sex = ?, age = ?, location = ?, constellation = ?, height = ?, weight = ?, bloodtype = ?, telephone = ?, personality = ? WHERE userid = ?', [nickname ,sex,age,location,constellation,height,weight,bloodtype,telephone,personality,userid],function(err,results,fields){
-        
+
         if(err){
           console.log('更新用户信息出错'+err);
           if(err.code == 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD'){
@@ -94,6 +94,20 @@ function getBaseinfo(req,res,next){
       console.log('登录信息已过期');
     }
   });
+}
+
+/**
+ * 递归读取文件夹
+ */
+function walk(path,arr){
+    var dirList = fs.readdirSync(path);
+    dirList.forEach(function(item){
+        if(fs.statSync(path + '/' + item).isDirectory()){
+            walk(path + '/' + item,arr);
+        }else{
+            arr.push(path + '/' + item);
+        }
+    });
 }
 
 module.exports={

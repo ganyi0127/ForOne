@@ -70,7 +70,6 @@ function getPhoto(req,res,next){
       datahandler.fail(res,'file not exists!');
     }
   });
-
 }
 
 function setPhoto(req,res,next){
